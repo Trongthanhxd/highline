@@ -1,9 +1,9 @@
 {
   "title": "Highline – Tiến độ SX",
   "description": "Khai báo và theo dõi tiến độ sản xuất – lắp dựng theo từng assembly (SEICO)",
-  "icon": "https://YOUR-GITHUB-NAME.github.io/highline/icon.png",
-  "url": "https://YOUR-GITHUB-NAME.github.io/highline/index.html",
-  "infoUrl": "https://YOUR-GITHUB-NAME.github.io/highline/HUONG_DAN.html",
+  "icon": "https://trongthanhxd.github.io/highline/icon.png",
+  "url": "https://trongthanhxd.github.io/highline/index.html",
+  "infoUrl": "https://trongthanhxd.github.io/highline/HUONG_DAN.html",
   "enabled": true,
   "extensionType": ["3dviewer"]
 }
