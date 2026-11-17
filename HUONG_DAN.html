@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hướng dẫn Highline – Tiến độ SX trên Trimble Connect</title>
+<style>
+body{font-family:"Segoe UI",Roboto,Arial,sans-serif;max-width:860px;margin:0 auto;padding:24px;color:#1d2433;line-height:1.55}
+h1{font-size:24px;margin-bottom:4px}h2{font-size:18px;margin-top:28px;border-bottom:2px solid #e3e6ec;padding-bottom:4px}
+code{background:#f1f3f6;padding:1px 5px;border-radius:4px}pre{background:#f1f3f6;padding:10px;border-radius:6px;overflow:auto}
+.w{background:#fff4e0;border-left:4px solid #fb8c00;padding:8px 12px;border-radius:4px}
+table{border-collapse:collapse}td,th{border:1px solid #e3e6ec;padding:5px 9px;text-align:left}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px}
+</style></head><body>
+<h1>Highline – Theo dõi tiến độ sản xuất trên Trimble Connect</h1>
+<p>Phòng Thiết kế Sản xuất · SEICO · phiên bản 1.0 (11/2026)</p>
+
+<h2>1. Công cụ làm gì</h2>
+<ul>
+<li>Chạy ngay trong trình xem 3D của Trimble Connect, ở dạng một panel bên cạnh mô hình.</li>
+<li>Tự đọc toàn bộ assembly từ file IFC xuất từ Tekla, gồm mark, tên, khối lượng, vị trí trục (position code) và cao độ.</li>
+<li>Khai báo theo <b>mark</b>. Mỗi cấu kiện cùng mark vẫn được quản lý riêng theo <b>GUID</b>: rê chuột lên dòng nào thì cấu kiện đó sáng lên trên mô hình.</li>
+<li>Có 7 công đoạn, mỗi công đoạn lưu ngày xong và người khai báo:
+<table>
+<tr><th>#</th><th>Công đoạn</th><th>Màu</th></tr>
+<tr><td>1</td><td>Cắt phôi</td><td><span class="sw" style="background:#FDD835"></span> vàng</td></tr>
+<tr><td>2</td><td>Hàn tổ hợp</td><td><span class="sw" style="background:#FB8C00"></span> cam</td></tr>
+<tr><td>3</td><td>Gá tổ hợp</td><td><span class="sw" style="background:#E53935"></span> đỏ</td></tr>
+<tr><td>4</td><td>Hàn hoàn thiện</td><td><span class="sw" style="background:#8E24AA"></span> tím</td></tr>
+<tr><td>5</td><td>Làm sạch + sơn</td><td><span class="sw" style="background:#1E88E5"></span> xanh dương</td></tr>
+<tr><td>6</td><td>Cấp hàng</td><td><span class="sw" style="background:#00ACC1"></span> xanh ngọc</td></tr>
+<tr><td>7</td><td>Lắp dựng</td><td><span class="sw" style="background:#43A047"></span> xanh lá</td></tr>
+</table></li>
+<li><b>Cảnh báo sai trình tự</b> trong các trường hợp sau:
+  <ul>
+  <li>khai báo xong một công đoạn khi công đoạn trước chưa xong;</li>
+  <li>ngày xong sớm hơn ngày xong của công đoạn trước;</li>
+  <li>ngày xong nằm trong tương lai;</li>
+  <li>hủy một công đoạn khi các công đoạn sau đã được khai báo xong.</li>
+  </ul>
+  Người dùng có thể chọn Hủy, Vẫn lưu, hoặc Lưu kèm đánh dấu luôn các công đoạn trước.</li>
+<li>Các chế độ xem (tô màu mô hình):
+  <ul>
+  <li>tổng hợp theo công đoạn cao nhất;</li>
+  <li>từng công đoạn riêng, phân biệt: đã xong, sẵn sàng làm, chưa tới;</li>
+  <li>riêng các cấu kiện sai trình tự.</li>
+  </ul></li>
+<li>Báo cáo % theo số lượng và theo khối lượng (tấn), sản lượng theo khoảng ngày (tuần này, tuần trước, tháng này), và xuất Excel 5 sheet.</li>
+<li>Admin dự án phân quyền: tick người nào được khai báo công đoạn nào (tổ trưởng, thống kê, cấp hàng, giám sát).</li>
+</ul>
+
+<h2>2. Dữ liệu được lưu ở đâu</h2>
+<p>Toàn bộ dữ liệu nằm <b>ngay trong dự án Trimble Connect</b>, trong thư mục <code>HIGHLINE_DATA</code> ở thư mục gốc. Công cụ tự tạo thư mục này lần đầu chạy.</p>
+<ul>
+<li><code>HL_u_&lt;mã người dùng&gt;.json</code>: nhật ký khai báo của từng người. Mỗi người chỉ ghi vào file của mình nên nhiều người khai báo cùng lúc không ghi đè lên nhau.</li>
+<li><code>HL_config.json</code>: phân quyền và màu, do Admin lưu.</li>
+</ul>
+<p>Dữ liệu gắn theo <b>GUID của assembly</b>. Khi model sửa đổi, anh/chị upload file IFC mới <b>đè lên đúng file cũ</b> (tạo phiên bản mới) thì các khai báo cũ vẫn giữ nguyên với các cấu kiện còn giữ GUID.</p>
+<div class="w">Không xóa hay sửa tay thư mục <code>HIGHLINE_DATA</code>. Nên giới hạn quyền thư mục này: thành viên được Đọc/Ghi, nhưng không được Xóa.</div>
+
+<h2>3. Xuất IFC từ Tekla</h2>
+<ul>
+<li>Bật <b>Assemblies</b> (bắt buộc) và <b>Property sets</b>. File mẫu 3D-20260828-P1.ifc đã bật đủ: 7.380 assembly, 909 mark, 170,2 tấn.</li>
+<li>Property set mặc định <i>Tekla Assembly</i> đã có đủ trường công cụ cần: <i>Assembly/Cast unit Mark</i>, <i>weight</i>, <i>position code</i>, <i>bottom elevation</i>.</li>
+<li>Mỗi dự án nên đặt tên file cố định để khi cập nhật thì upload thành phiên bản mới.</li>
+</ul>
+
+<h2>4. Đưa công cụ lên mạng (làm 1 lần)</h2>
+<p>Extension của Trimble Connect phải là một trang web chạy trên HTTPS. Cách đơn giản và miễn phí nhất là dùng GitHub Pages:</p>
+<ol>
+<li>Tạo tài khoản tại <a href="https://github.com">github.com</a>, rồi tạo repository tên <code>highline</code>, chọn chế độ <b>Public</b>.</li>
+<li>Bấm <i>Add file › Upload files</i> và tải lên toàn bộ nội dung thư mục <code>highline</code>: <code>index.html</code>, <code>app.js</code>, <code>manifest.json</code>, <code>icon.png</code>, <code>HUONG_DAN.html</code> và thư mục <code>vendor</code>.<br>
+<b>Không</b> tải lên <code>demo-data.json</code>, vì file này chứa dữ liệu dự án mẫu.</li>
+<li>Vào <i>Settings › Pages</i>. Ở mục Source chọn <i>Deploy from a branch</i>, chọn nhánh <code>main</code>, thư mục <code>/ (root)</code>, rồi Save. Khoảng 1 phút sau, trang sẽ có tại <code>https://&lt;tên-github&gt;.github.io/highline/</code>.</li>
+<li>Sửa file <code>manifest.json</code>: thay cả 3 chỗ <code>YOUR-GITHUB-NAME</code> bằng tên GitHub của anh/chị, rồi Commit.</li>
+<li>Kiểm tra: mở <code>https://&lt;tên-github&gt;.github.io/highline/index.html</code> trên trình duyệt. Trang hiện chữ “Không khởi động được” hoặc chạy chế độ demo là bình thường, vì trang đang mở ngoài Trimble Connect.</li>
+</ol>
+<p>Repo public chỉ công khai mã nguồn. Dữ liệu tiến độ không nằm trên GitHub mà luôn nằm trong dự án Trimble Connect. Nếu công ty có máy chủ web nội bộ chạy HTTPS thì có thể đặt các file ở đó thay cho GitHub.</p>
+
+<h2>5. Gắn vào dự án Trimble Connect (Admin dự án)</h2>
+<ol>
+<li>Mở dự án trên <b>Trimble Connect for Browser</b>, vào <i>Settings › Extensions</i> (có bản ghi là <i>Apps &amp; Capabilities</i>).</li>
+<li>Bấm <i>Add custom extension</i> và dán link manifest: <code>https://&lt;tên-github&gt;.github.io/highline/manifest.json</code>.</li>
+<li>Bật (Enable) extension <b>Highline – Tiến độ SX</b>.</li>
+<li>Mở file IFC trong trình xem 3D. Biểu tượng Highline sẽ hiện ở thanh extension bên trái; bấm vào để mở panel.</li>
+<li>Lần đầu, Trimble Connect hỏi cấp quyền truy cập (access token). Mỗi người dùng bấm <b>Allow</b> một lần.</li>
+<li>Admin vào tab <b>Cài đặt › Phân quyền khai báo</b>, tick công đoạn cho từng người rồi bấm Lưu. Ví dụ: tổ trưởng cắt được CP, tổ trưởng hàn được HT/GA/HH, thống kê được tất cả, nhân viên cấp hàng được CH, giám sát được LD.</li>
+</ol>
+
+<h2>6. Cách khai báo</h2>
+<ol>
+<li><b>Chọn cấu kiện</b> theo một trong 3 cách:
+  <ul>
+  <li>gõ mark vào ô tìm kiếm;</li>
+  <li>click trực tiếp vào cấu kiện trên mô hình, giữ Ctrl để chọn nhiều;</li>
+  <li>lọc theo trạng thái “Chưa xong: …”.</li>
+  </ul></li>
+<li>Màn hình mark liệt kê từng cấu kiện kèm vị trí trục, và 7 ô màu ghi ngày xong của từng công đoạn. Rê chuột lên dòng nào thì cấu kiện đó sáng trên mô hình; bấm 🎯 để zoom tới cấu kiện.</li>
+<li>Tick các cấu kiện cần khai báo. Nếu chỉ biết số lượng, nhập vào ô <b>Theo số lượng</b> (ví dụ 12) rồi bấm <b>Chọn</b>: công cụ tự chọn 12 cái chưa xong, ưu tiên những cái đã xong công đoạn trước.</li>
+<li>Chọn công đoạn và ngày xong (mặc định là hôm nay), rồi bấm <b>✓ Xác nhận xong</b>. Nếu khai báo nhầm, chọn lại các cấu kiện đó và bấm <b>↺ Hủy xong</b>.</li>
+<li>Dữ liệu tự lưu lên Trimble Connect sau khoảng 2 giây. Góc trên bên phải hiện trạng thái “✓ Đã đồng bộ”. Khai báo của người khác tự cập nhật mỗi 2 phút; muốn cập nhật ngay thì bấm vào ô trạng thái.</li>
+</ol>
+
+<h2>7. Báo cáo</h2>
+<ul>
+<li>Tab <b>Báo cáo</b> hiện % theo số lượng và theo tấn cho từng công đoạn. Phần sản lượng theo khoảng ngày dùng được ngay cho báo cáo tuần.</li>
+<li><b>Xuất Excel</b> ra 5 sheet: Tổng hợp, Theo ngày, Theo mark, Chi tiết cấu kiện (có GUID và ngày từng công đoạn), Nhật ký (ai khai báo gì, lúc nào).</li>
+</ul>
+
+<h2>8. Lưu ý giai đoạn chạy thử</h2>
+<ul>
+<li>Công cụ đã được kiểm thử bằng dữ liệu IFC thật và một mô phỏng API của Trimble Connect, nhưng <b>chưa chạy trong Trimble Connect thật</b>. Nên chạy thử trên một dự án nhỏ trước. Gặp lỗi thì bấm F12, chụp tab Console và gửi lại.</li>
+<li>Lần đầu mở một mô hình, công cụ chạy nền để tìm các part con của từng assembly, giúp tô màu chính xác. Mô hình 10.000 assembly có thể mất 1–2 phút. Từ lần sau, kết quả được lấy từ bộ nhớ đệm nên mở ngay.</li>
+<li>Muốn chạy thử không cần Trimble Connect: đặt <code>demo-data.json</code> vào cùng thư mục, chạy một web server cục bộ rồi mở <code>index.html</code>. Công cụ sẽ tự vào chế độ DEMO.</li>
+</ul>
+</body></html>

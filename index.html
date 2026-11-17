@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Highline – Tiến độ sản xuất</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1d2433; --mut:#6b7385; --line:#e3e6ec;
+  --pri:#0b5cad; --pri2:#e8f1fb; --ok:#2e7d32; --warn:#b26a00; --err:#c62828;
+  --r:8px; font-size:13px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 9px}
+button:hover{border-color:#b9c2d0}
+button.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+button.pri:hover{background:#094b8e}
+button.ghost{border-color:transparent;background:transparent;padding:4px 6px}
+button.ghost:hover{background:#eef1f5}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:#fff;min-width:0}
+input:focus,select:focus{outline:2px solid #b8d3f1;border-color:var(--pri)}
+#app{display:flex;flex-direction:column;height:100%}
+header{background:#0f2a4a;color:#fff;padding:8px 10px;display:flex;align-items:center;gap:8px}
+header .t{font-weight:600;font-size:14px;letter-spacing:.2px}
+header .s{font-size:11px;opacity:.75}
+header .sp{flex:1}
+#sync{font-size:11px;padding:3px 7px;border-radius:10px;background:rgba(255,255,255,.12);white-space:nowrap;cursor:pointer}
+#sync.dirty{background:#b26a00}
+#sync.err{background:#c62828}
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line)}
+nav button{flex:1;border:0;border-radius:0;border-bottom:2px solid transparent;padding:8px 2px;background:none;color:var(--mut);font-weight:500}
+nav button.on{color:var(--pri);border-bottom-color:var(--pri)}
+main{flex:1;overflow:auto;padding:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px;margin-bottom:10px}
+.row{display:flex;gap:6px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.mut{color:var(--mut)}
+.small{font-size:11px}
+h3{margin:0 0 8px;font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid rgba(0,0,0,.15)}
+.marks{list-style:none;margin:0;padding:0}
+.marks li{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f2f5;cursor:pointer}
+.marks li:hover{background:#f4f7fb}
+.marks .mk{font-weight:600;min-width:64px}
+.marks .nm{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar7{display:flex;gap:1px;width:112px;flex:none}
+.bar7 i{flex:1;height:8px;background:#e6e9ee;position:relative;overflow:hidden;border-radius:1px}
+.bar7 i b{position:absolute;left:0;top:0;bottom:0}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;color:var(--mut);font-weight:600;text-align:left;padding:3px 2px;position:sticky;top:-10px;background:#fff;z-index:1}
+.tbl td{padding:3px 2px;border-top:1px solid #f0f2f5;vertical-align:middle}
+.inst tr:hover td{background:#f4f7fb}
+.inst tr.chk td{background:#e8f1fb}
+.cell{width:24px;height:20px;border-radius:4px;background:#eef0f3;font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;text-shadow:0 0 2px rgba(0,0,0,.35)}
+.cell.bad{outline:2px solid var(--err);outline-offset:-2px}
+.stg-h{width:24px;text-align:center!important;font-size:9px!important}
+.pos{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px}
+.act{position:sticky;bottom:-10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:8px;margin:0 -2px;box-shadow:0 -4px 12px rgba(0,0,0,.06)}
+.pill{display:inline-block;padding:1px 7px;border-radius:10px;background:#eef1f5;font-size:11px}
+.prog{height:8px;background:#e9ecf1;border-radius:4px;overflow:hidden}
+.prog b{display:block;height:100%}
+.note{padding:8px 10px;border-radius:6px;font-size:12px;margin-bottom:8px}
+.note.w{background:#fff4e0;color:#7a4b00}
+.note.e{background:#fdecea;color:#8e1c1c}
+.note.i{background:#e8f1fb;color:#0b3f78}
+#modal{position:fixed;inset:0;background:rgba(15,25,40,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
+#modal .box{background:#fff;border-radius:10px;max-width:420px;width:100%;max-height:90%;overflow:auto;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+#modal .btns{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:40;padding:20px;text-align:center}
+.spin{width:28px;height:28px;border:3px solid #cfd8e6;border-top-color:var(--pri);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#demo{background:#fff4e0;color:#7a4b00;font-size:11px;padding:4px 10px;display:none}
+#toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:7px 12px;border-radius:6px;font-size:12px;display:none;z-index:60;max-width:90%}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px}
+.perm td{font-size:11px}
+.perm input{margin:0}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:11px;cursor:pointer}
+.chip.on{border-color:var(--pri);background:var(--pri2);color:var(--pri)}
+</style>
+</head>
+<body>
+<div id="loading"><div class="spin"></div><div id="loadmsg">Đang kết nối Trimble Connect…</div></div>
+<div id="app">
+  <header>
+    <div><div class="t">Highline · Tiến độ SX</div><div class="s" id="who">–</div></div>
+    <div class="sp"></div>
+    <span id="sync" title="Bấm để đồng bộ ngay">–</span>
+  </header>
+  <div id="demo"></div>
+  <nav>
+    <button data-tab="decl" class="on">Khai báo</button>
+    <button data-tab="view">Chế độ xem</button>
+    <button data-tab="report">Báo cáo</button>
+    <button data-tab="settings">Cài đặt</button>
+  </nav>
+  <main id="main"></main>
+</div>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<div id="toast"></div>
+<script src="vendor/trimbleconnect.workspace.api.js"></script>
+<script src="vendor/xlsx.full.min.js" defer></script>
+<script src="app.js"></script>
+</body>
+</html>
