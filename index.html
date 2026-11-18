@@ -106,5 +106,33 @@ h3{margin:0 0 8px;font-size:13px}
 <script src="vendor/trimbleconnect.workspace.api.js"></script>
 <script src="vendor/xlsx.full.min.js" defer></script>
 <script src="app.js"></script>
+  <script>
+/* Highline fix 1 – dò máy chủ (region) dự phòng + hiện lỗi chi tiết */
+TCHost.prototype.initStorage = async function () {
+  await this.getToken();
+  var log = [], servers = [];
+  try { var r = await fetch(REGIONS_URL, { cache: "no-store" }); servers = await r.json(); log.push("regions " + r.status); }
+  catch (e) { log.push("regions: " + e.message); }
+  var known = { northamerica: "app.connect.trimble.com", europe: "app21.connect.trimble.com", asia: "app31.connect.trimble.com", australia: "app32.connect.trimble.com" };
+  var loc = String(this.project.location || "").toLowerCase().replace(/[^a-z]/g, ""), hosts = [];
+  var add = function (h) { if (!h) return; h = String(h).replace(/^https?:\/\//, "").replace(/\/.*$/, ""); if (h && hosts.indexOf(h) < 0) hosts.push(h); };
+  (servers || []).forEach(function (s) { var sl = String(s.location || s.serviceRegion || "").toLowerCase().replace(/[^a-z]/g, ""); if (loc && sl && (sl.indexOf(loc) >= 0 || loc.indexOf(sl) >= 0)) add(s.origin || s["tc-api"]); });
+  add(known[loc]);
+  (servers || []).forEach(function (s) { add(s.origin || s["tc-api"]); });
+  Object.keys(known).forEach(function (k) { add(known[k]); });
+  var proj = null;
+  for (var i = 0; i < hosts.length; i++) {
+    try { this.origin = hosts[i]; proj = await this.req("projects/" + this.project.id); if (proj && proj.rootId) { break; } log.push(hosts[i] + ": không có rootId"); proj = null; }
+    catch (e) { log.push(hosts[i] + ": " + String(e.message || e).slice(0, 120)); proj = null; }
+  }
+  console.log("[Highline] initStorage", this.project, log);
+  if (!proj) throw new Error("Không xác định được máy chủ của dự án. ‖ Mã dự án: " + this.project.id + " ‖ location: " + (this.project.location || "?") + " ‖ " + log.join(" ‖ "));
+  this.rootId = proj.rootId;
+  var items = await this.req("folders/" + this.rootId + "/items");
+  var f = (items || []).find(function (x) { return x.type === "FOLDER" && x.name === DATA_FOLDER; });
+  if (!f) f = await this.req("folders", { method: "POST", json: { name: DATA_FOLDER, parentId: this.rootId } });
+  this.folderId = f.id;
+};
+</script>
 </body>
 </html>
